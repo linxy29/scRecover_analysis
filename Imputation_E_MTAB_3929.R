@@ -1,8 +1,8 @@
-library(ImputeSingle)
+library(scRecover)
 
 # Prepare data
-load("F:/data/E-MTAB-3929/E_MTAB_3929.Rdata")
-SDRF_original <- read.table("F:/data/E-MTAB-3929/E-MTAB-3929.sdrf.txt", sep = "\t", header = T, stringsAsFactors = F)
+#load("F:/data/E-MTAB-3929/E_MTAB_3929.Rdata")
+SDRF_original <- read.table("/Users/linxy29/Documents/Data/scRecover/E-MTAB-3929/E-MTAB-3929.sdrf.txt", sep = "\t", header = T, stringsAsFactors = F)
 SDRF <- SDRF_original[,c(1, 9, 10, 11, 12, 13, 14, 15)]
 row.names(SDRF) <- SDRF[,1]
 colnames(SDRF) <- c("sample.name", "individual", "developmental.stage", "treatment", "phenotype", "inferred.lineage", "inferred.TE.subpopulation", "inferred.pseudo.time")

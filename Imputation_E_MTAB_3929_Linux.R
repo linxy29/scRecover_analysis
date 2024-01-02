@@ -1,6 +1,6 @@
-library(ImputeSingle)
-setwd("/data/miaozhun/analysis/imputation/E_MTAB_3929")
-load("/data/miaozhun/analysis/imputation/E_MTAB_3929/E_MTAB_3929.Rdata")
+library(scRecover)
+setwd("~/Documents/Data/scRecover/E-MTAB-3929")
+load("~/Documents/Data/scRecover/E-MTAB-3929/E_MTAB_3929.Rdata")
 counts_original <- E_MTAB_3929[rowSums(E_MTAB_3929 != 0) > 0,]
 
 # Counts sampling function
@@ -50,7 +50,7 @@ for(percentage in c(0.01, 0.05, 0.1, 0.2)){
   for(Kcluster in c(2, 5, 10)){
     for(depth in c(2, 5, 10, 20, 50)){
       outputDir <- paste0("./E_MTAB_3929_ImputeSingle_p_", percentage, "_K_", Kcluster, "_d_", depth, "/")
-      ImputeSingle(counts = counts_down, Kcluster = Kcluster, outputDir = outputDir, depth = depth, SAVER = TRUE, MAGIC = TRUE, parallel = TRUE)
+      scRecover(counts = counts_down, Kcluster = Kcluster, outputDir = outputDir, depth = depth, SAVER = TRUE, MAGIC = TRUE, parallel = TRUE)
     }
   }
 }
@@ -104,8 +104,8 @@ summaryImputation <- function(path, counts_original){
   return(results)
 }
 
-setwd("/data/miaozhun/analysis/imputation/E_MTAB_3929")
-load("/data/miaozhun/analysis/imputation/E_MTAB_3929/E_MTAB_3929.Rdata")
+setwd("~/Documents/Data/scRecover/E_MTAB_3929")
+load("~/Documents/Data/scRecover/E_MTAB_3929/E_MTAB_3929.Rdata")
 counts_original <- E_MTAB_3929[rowSums(E_MTAB_3929 != 0) > 0,]
 to_be_saved_obj <- NULL
 
