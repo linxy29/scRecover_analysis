@@ -120,4 +120,4 @@ processed_df %>%
   theme_minimal() +
   theme(legend.position = "bottom")
 
-ggsave("figure3.pdf")
+ggsave("figure3.pdf", height = 8, width = 8)

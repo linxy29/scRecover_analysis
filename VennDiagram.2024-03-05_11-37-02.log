@@ -1,0 +1,9 @@
+INFO [2024-03-05 11:37:02] $x
+INFO [2024-03-05 11:37:02] list(DF1 = genes_df1, DF2 = genes_df2, DF3 = genes_df3)
+INFO [2024-03-05 11:37:02] 
+INFO [2024-03-05 11:37:02] $category.names
+INFO [2024-03-05 11:37:02] c("original", "SAVER + scRecover", "scImpute + scRecover")
+INFO [2024-03-05 11:37:02] 
+INFO [2024-03-05 11:37:02] $filename
+INFO [2024-03-05 11:37:02] NULL
+INFO [2024-03-05 11:37:02] 

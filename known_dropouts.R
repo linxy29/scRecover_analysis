@@ -102,6 +102,120 @@ for (name in names(to_be_saved_obj)) {
 
 print("New statsitics like Precision, Accuracy, Specificity, False_Positive_Rate, FDR are added.")
 
-#####################
+############### Gather results together
+items_to_remove <- grep("p_0.1|p_0.2", names(to_be_saved_obj), value = TRUE)
+
+# Remove these items from the list
+filtered_list <- to_be_saved_obj[!names(to_be_saved_obj) %in% items_to_remove]
+
+# Define the metrics names to extract
+metrics <- c("Precision", "Accuracy", "Specificity", "False_Positive_Rate", "FDR")
+
+# Create a list to hold each metric's data frames
+metrics_data <- setNames(vector("list", length(metrics)), metrics)
+
+# Iterate through each metric and extract the corresponding data across all data frames
+for (metric in metrics) {
+  # Extract the metric data and the name of the data frame and store in a list
+  metrics_data[[metric]] <- mapply(function(df, name) {
+    if (metric %in% rownames(df)) {
+      return(data.frame(Name = name, Value = df[metric, ], stringsAsFactors = FALSE))
+    } else {
+      return(data.frame(Name = name, Value = NA, stringsAsFactors = FALSE)) # In case the metric is not found
+    }
+  }, filtered_list, names(filtered_list), SIMPLIFY = FALSE)
+  
+  # Combine the list of data frames for the current metric into one data frame
+  metrics_data[[metric]] <- do.call(rbind, metrics_data[[metric]])
+}
+
+# At this point, 'metrics_data' is a list where each element is a data frame for a specific metric
+# Each data frame contains the metric values and the names of the original data frames
+
+# plot 
+library(ggplot2)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(stringr)
+
+# Assuming each data frame in metrics_data list has the same structure as your example for Precision
+
+# Define a function to process each data frame
+process <- function(df, metric_name) {
+  # 1. Extract p, K, d from the Name column
+  data <- df %>%
+    mutate(
+      p = as.numeric(str_extract(Name, "(?<=_p_)[0-9.]+")),
+      K = as.numeric(str_extract(Name, "(?<=_K_)[0-9]+")),
+      d = as.numeric(str_extract(Name, "(?<=_d_)[0-9]+"))) %>%
+    select(-Name, -Value.original, -Value.downsampling) %>%
+    pivot_longer(
+      cols = starts_with("Value"),
+      names_to = "Method",
+      values_to = "Value"
+    ) %>%
+    drop_na(Value)
+  
+  # 2. Group by p and d, and select the best K for each metric
+  # Determine the function to use based on the metric type
+  best_value_function <- case_when(
+    metric_name %in% c("Precision", "Accuracy", "Specificity") ~ "max",
+    metric_name %in% c("False_Positive_Rate", "FDR") ~ "min",
+    TRUE ~ NA_character_  # This should not happen but provides a fallback
+  )
+  
+  # Add a column to indicate the best value row
+  data <- data %>%
+    group_by(p, d, Method) %>%
+    mutate(
+      Best_Value = case_when(
+        best_value_function == "max" & Value == max(Value, na.rm = TRUE) ~ TRUE,
+        best_value_function == "min" & Value == min(Value, na.rm = TRUE) ~ TRUE,
+        TRUE ~ FALSE
+      )
+    ) %>%
+    filter(Best_Value) %>%
+    filter(d >= 10) %>% 
+    mutate(Method = str_remove(Method, "Value.")) %>%
+    filter(Method %in% c("scImpute_truezero", "SAVER_truezero")) %>%
+    mutate(Method = str_replace(Method, "_filter", " + scRecover")) %>% 
+    #filter(p != 0.01) %>% 
+    ungroup()
+  
+  return(data)
+}
+
+# Initialize an empty list to store processed data frames
+processed_dfs <- list()
+
+# Iterate over each metric, process the data, and store the result with metric_name
+for(metric_name in names(metrics_data)) {
+  print(paste("Processing", metric_name))
+  df <- metrics_data[[metric_name]]
+  processed_dfs[[metric_name]] <- process(df, metric_name)
+}
+
+metrics_of_interest <- c("Accuracy", "Precision", "Specificity")
+
+# Combine data frames into one, preserving metric names
+combined_df <- bind_rows(processed_dfs[metrics_of_interest], .id = "Metric")
+write_csv(combined_df, file = "truezero.csv")
+
+combined_df %>% 
+  mutate(p = str_c("p = ", p)) %>% 
+  ggplot(aes(x = Metric, y = Value, color = Method)) +
+  geom_boxplot() +
+  #facet_grid(Metric ~ .) +  # Changed to facet_grid for better control
+  labs(title = "Metrics Comparison Across Different Scenarios",
+       x = "Prediction Depth (d)",
+       y = "Metric Value") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        strip.background = element_blank(),
+        strip.text.x = element_text(angle = 0))  # Adjust text angle if needed
+
+ggsave("truezero.pdf")
 
 
+combined_df <- bind_rows(processed_dfs[metrics_of_interest], .id = "Metric")

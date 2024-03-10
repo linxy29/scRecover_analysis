@@ -149,6 +149,10 @@ for(metric_name in names(metrics_data)) {
 # Save the list of processed data frames 
 saveRDS(processed_dfs, "summary_statistics_frames.rds")
 
+########### start from saved data
+
+processed_dfs = readRDS("summary_statistics_frames.rds")
+
 # Load the openxlsx package
 library(openxlsx)
 # Create a new workbook
@@ -192,4 +196,4 @@ ggplot(aes(x = d, y = Value, color = Method)) +
         strip.background = element_blank(),
         strip.text.x = element_text(angle = 0))  # Adjust text angle if needed
 
-ggsave("figure2.pdf")
+ggsave("figure2.pdf", height = 8, width = 8)
